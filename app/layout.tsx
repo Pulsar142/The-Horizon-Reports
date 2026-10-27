@@ -19,9 +19,9 @@ const jbMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FIGHTER GROUP INTEL / NEWS UPDATE",
+  title: "Your Weekly OSINT Update",
   description:
-    "Open-source military intelligence briefings on Singapore, South-East Asia, the USA and global defence & technology developments.",
+    "Open-source military news briefings on Singapore, South-East Asia, the USA and global defence & technology developments.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
