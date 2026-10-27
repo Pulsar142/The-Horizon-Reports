@@ -1,6 +1,6 @@
-# FIGHTER GROUP INTEL / NEWS UPDATE
+# Open-Source Weekly News Update
 
-An open-source military intelligence briefing site: weekly, bot-drafted articles on defence and
+An open-source military news briefings site: weekly, bot-drafted articles on defence and
 military-technology developments across Singapore, South-East Asia, the USA and the world (with
 Malaysia and Indonesia as toggleable regions, plus ad-hoc "any country" generation), reviewed and
 published through an admin panel.
