@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { replaceAviationSafetyImageAction } from "@/app/actions/admin";
 import type { ArticleImage, ArticleSource } from "@/lib/types";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 
 export function AviationSafetyImageForm({
   id,
@@ -35,7 +36,7 @@ export function AviationSafetyImageForm({
       <div className="aspect-video w-full max-w-sm overflow-hidden rounded border border-border bg-panel-2">
         {/* eslint-disable-next-line @next/next/no-img-element -- external/uploaded image, arbitrary source */}
         <img
-          src={image?.url ?? "/placeholder-briefing.svg"}
+          src={proxiedImageUrl(image?.url)}
           alt={image?.caption ?? "Current briefing image"}
           className="h-full w-full object-cover"
         />

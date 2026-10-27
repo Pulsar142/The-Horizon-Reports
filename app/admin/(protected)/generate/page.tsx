@@ -3,6 +3,7 @@ import { GenerateForm } from "@/app/admin/(protected)/generate/GenerateForm";
 import { FunFactForm } from "@/app/admin/(protected)/generate/FunFactForm";
 import { AircraftRecognitionForm } from "@/app/admin/(protected)/generate/AircraftRecognitionForm";
 import { REGION_LABELS } from "@/lib/sources";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 import {
   cancelFreeGenerationRequestAction,
   cancelFunFactRequestAction,
@@ -298,7 +299,7 @@ export default async function GeneratePage({
 
         const Thumb = ({ url, name }: { url: string; name: string }) => (
           // eslint-disable-next-line @next/next/no-img-element -- external, arbitrary-host photo URLs
-          <img src={url} alt={name} className="h-16 w-24 shrink-0 rounded border border-border object-cover" />
+          <img src={proxiedImageUrl(url)} alt={name} className="h-16 w-24 shrink-0 rounded border border-border object-cover" />
         );
 
         return (

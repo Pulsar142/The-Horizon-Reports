@@ -6,6 +6,7 @@ import { QuickBrief } from "@/app/components/QuickBrief";
 import { ReliabilityBadge } from "@/app/components/ReliabilityBadge";
 import { VoiceoverButton, type VoiceoverSegment } from "@/app/components/VoiceoverButton";
 import { AVIATION_SAFETY_REGION_LABELS } from "@/lib/aviationSafety";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 import { format } from "date-fns";
 
 export default async function AviationSafetyArticlePage({
@@ -59,7 +60,7 @@ export default async function AviationSafetyArticlePage({
           <figure className="mb-6">
             {/* eslint-disable-next-line @next/next/no-img-element -- external source images */}
             <img
-              src={article.images[0].url}
+              src={proxiedImageUrl(article.images[0].url)}
               alt={article.images[0].caption}
               className="w-full rounded border border-border object-cover"
             />

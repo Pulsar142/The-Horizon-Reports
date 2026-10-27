@@ -7,6 +7,7 @@ import { ReliabilityBadge } from "@/app/components/ReliabilityBadge";
 import { VoiceoverButton, type VoiceoverSegment } from "@/app/components/VoiceoverButton";
 import { REGION_LABELS } from "@/lib/sources";
 import { storyDateLabel } from "@/lib/weeks";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 
 export default async function ArticlePage({
   params,
@@ -66,7 +67,7 @@ export default async function ArticlePage({
               <figure key={i}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- external source images */}
                 <img
-                  src={img.url}
+                  src={proxiedImageUrl(img.url)}
                   alt={img.caption}
                   className="w-full rounded border border-border object-cover"
                 />

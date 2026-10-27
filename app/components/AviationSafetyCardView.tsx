@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AviationSafetyCard } from "@/lib/queries";
 import { AVIATION_SAFETY_REGION_LABELS } from "@/lib/aviationSafety";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 import { ReliabilityBadge } from "@/app/components/ReliabilityBadge";
 import { format } from "date-fns";
 
@@ -13,7 +14,7 @@ export function AviationSafetyCardView({ article }: { article: AviationSafetyCar
       <div className="relative aspect-video w-full overflow-hidden border-b border-border bg-panel-2">
         {/* eslint-disable-next-line @next/next/no-img-element -- images come from arbitrary bot-selected source domains */}
         <img
-          src={article.image?.url ?? "/placeholder-briefing.svg"}
+          src={proxiedImageUrl(article.image?.url)}
           alt={article.image?.caption ?? article.title}
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
           loading="lazy"

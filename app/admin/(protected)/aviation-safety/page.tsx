@@ -10,6 +10,7 @@ import {
   deleteAviationSafetyAction,
 } from "@/app/actions/admin";
 import type { ArticleImage } from "@/lib/types";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 
 const STATUS_STYLE: Record<string, string> = {
   PENDING: "text-gold",
@@ -45,7 +46,7 @@ export default async function AviationSafetyAdminPage() {
           <div className="aspect-video overflow-hidden rounded border border-border bg-panel-2">
             {/* eslint-disable-next-line @next/next/no-img-element -- external, arbitrary-host photo URLs */}
             <img
-              src={image?.url ?? "/placeholder-briefing.svg"}
+              src={proxiedImageUrl(image?.url)}
               alt={image?.caption ?? a.title}
               className="h-full w-full object-cover"
             />

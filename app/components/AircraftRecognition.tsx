@@ -1,4 +1,5 @@
 import type { AircraftRecognition as AircraftRecognitionCard } from "@/generated/prisma/client";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 
 const CATEGORY_LABELS: Record<string, string> = {
   FIGHTER_JET: "Fighter Jet",
@@ -12,7 +13,7 @@ function Card({ card }: { card: AircraftRecognitionCard }) {
     <div className="flex flex-col gap-2">
       {/* eslint-disable-next-line @next/next/no-img-element -- external, arbitrary-host photo URLs */}
       <img
-        src={card.imageUrl}
+        src={proxiedImageUrl(card.imageUrl)}
         alt={card.aircraftName}
         className="w-full rounded border border-border object-cover"
       />

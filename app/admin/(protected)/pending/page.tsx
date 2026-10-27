@@ -8,6 +8,7 @@ import { RegenerateButtons } from "@/app/admin/(protected)/pending/RegenerateBut
 import { HideAnalysisButton } from "@/app/admin/(protected)/edit/HideAnalysisButton";
 import { HideSingaporeImpactButton } from "@/app/admin/(protected)/edit/HideSingaporeImpactButton";
 import type { ArticleImage } from "@/lib/types";
+import { proxiedImageUrl } from "@/lib/imageProxy";
 
 export default async function PendingReviewPage() {
   const drafts = await db.article.findMany({
@@ -37,7 +38,7 @@ export default async function PendingReviewPage() {
                 <div className="aspect-video overflow-hidden rounded border border-border bg-panel-2">
                   {/* eslint-disable-next-line @next/next/no-img-element -- external/uploaded image, arbitrary source */}
                   <img
-                    src={image?.url ?? "/placeholder-briefing.svg"}
+                    src={proxiedImageUrl(image?.url)}
                     alt={image?.caption ?? d.title}
                     className="h-full w-full object-cover"
                   />
