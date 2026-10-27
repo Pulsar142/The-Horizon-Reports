@@ -17,7 +17,7 @@ export default async function LoginPage({
     <main className="flex flex-1 items-center justify-center px-4 dot-grid">
       <div className="w-full max-w-sm rounded-lg border border-border bg-panel p-8 shadow-2xl">
         <p className="mb-1 text-center font-mono text-xs tracking-[0.3em] text-gold">
-          OPEN-SOURCE INTELLIGENCE &amp; NEWS UPDATE
+          OPEN-SOURCE WEEKLY NEWS UPDATE
         </p>
         <h1 className="stencil mb-6 text-center text-2xl text-foreground">
           The Horizon Reports
