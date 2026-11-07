@@ -94,6 +94,16 @@ type RawItem = Parser.Item & {
   mediaThumbnail?: { $?: { url?: string } }[];
 };
 
+// Markers outlets use to flag a story as breaking/urgent/developing, checked
+// against the title and any RSS category tags to pick the most newsworthy
+// item per source rather than just whichever happened to publish last.
+const BREAKING_KEYWORDS = ["breaking", "live updates", "live:", "developing", "urgent", "just in", "alert"];
+
+function isBreaking(title: string, categories: string[] | undefined): boolean {
+  const haystack = `${title} ${categories?.join(" ") ?? ""}`.toLowerCase();
+  return BREAKING_KEYWORDS.some((k) => haystack.includes(k));
+}
+
 function extractImage(item: RawItem): string | null {
   const media = item.mediaContent?.find((m) => m.$?.medium === "image" || m.$?.type?.startsWith("image/"));
   if (media?.$?.url) return media.$.url;
@@ -126,7 +136,13 @@ async function fetchOneFeedSource(source: FeedSourceDef, cutoff: Date): Promise<
         }))
         .filter((item) => !item.publishedAt || item.publishedAt >= cutoff);
       if (items.length > 0) {
-        items.sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
+        const rawByLink = new Map((feed.items as RawItem[]).map((raw) => [raw.link, raw]));
+        items.sort((a, b) => {
+          const aBreaking = isBreaking(a.title, rawByLink.get(a.link)?.categories);
+          const bBreaking = isBreaking(b.title, rawByLink.get(b.link)?.categories);
+          if (aBreaking !== bBreaking) return aBreaking ? -1 : 1;
+          return (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0);
+        });
         return items.slice(0, 1);
       }
     } catch {
@@ -137,9 +153,11 @@ async function fetchOneFeedSource(source: FeedSourceDef, cutoff: Date): Promise<
 }
 
 /**
- * Pulls the single most recent item (with an image, where the feed provides
- * one) from each outlet in the curated News Feeds source list. Best-effort
- * per source — one dead/changed feed doesn't take down the rest.
+ * Pulls a single item (with an image, where the feed provides one) from each
+ * outlet in the curated News Feeds source list — preferring a story flagged
+ * breaking/developing over the outlet's plain most-recent item, if one
+ * exists in the window. Best-effort per source — one dead/changed feed
+ * doesn't take down the rest.
  */
 export async function fetchAllNewsFeedItems(cutoffDays = 3): Promise<NewsFeedItem[]> {
   const cutoff = new Date(Date.now() - cutoffDays * 24 * 60 * 60 * 1000);

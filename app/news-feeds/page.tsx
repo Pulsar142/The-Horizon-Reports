@@ -3,10 +3,10 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { fetchAllNewsFeedItems, type NewsFeedItem } from "@/lib/newsFeed";
 import { format } from "date-fns";
 
-// Regenerated in the background at most every 30 minutes (Vercel ISR) rather
+// Regenerated in the background at most once an hour (Vercel ISR) rather
 // than on every request — these are live RSS fetches across 8 outlets, no
 // need to re-run that for every page view.
-export const revalidate = 1800;
+export const revalidate = 3600;
 
 async function loadFeedItems(): Promise<{ items: NewsFeedItem[]; error: string | null }> {
   try {
@@ -29,7 +29,7 @@ export default async function NewsFeedsPage() {
           <p className="mt-2 max-w-2xl font-mono text-xs text-muted">
             A live, unedited roundup from Channel News Asia, The Straits Times, Al Jazeera
             English, Reuters, ANTARA News, Astro AWANI, The Jerusalem Post, and Associated
-            Press — refreshed automatically roughly every 30 minutes.
+            Press — refreshed automatically roughly every hour.
           </p>
         </div>
 
