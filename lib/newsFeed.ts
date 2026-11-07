@@ -125,7 +125,10 @@ async function fetchOneFeedSource(source: FeedSourceDef, cutoff: Date): Promise<
           imageUrl: extractImage(item),
         }))
         .filter((item) => !item.publishedAt || item.publishedAt >= cutoff);
-      if (items.length > 0) return items;
+      if (items.length > 0) {
+        items.sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0));
+        return items.slice(0, 1);
+      }
     } catch {
       // try the next candidate URL for this source
     }
@@ -134,9 +137,9 @@ async function fetchOneFeedSource(source: FeedSourceDef, cutoff: Date): Promise<
 }
 
 /**
- * Pulls recent items (with images, where the feed provides one) from the
- * curated News Feeds source list. Best-effort per source — one dead/changed
- * feed doesn't take down the rest.
+ * Pulls the single most recent item (with an image, where the feed provides
+ * one) from each outlet in the curated News Feeds source list. Best-effort
+ * per source — one dead/changed feed doesn't take down the rest.
  */
 export async function fetchAllNewsFeedItems(cutoffDays = 3): Promise<NewsFeedItem[]> {
   const cutoff = new Date(Date.now() - cutoffDays * 24 * 60 * 60 * 1000);
