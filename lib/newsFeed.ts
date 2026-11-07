@@ -1,33 +1,147 @@
 import "server-only";
-import { SOURCES, type SourceDef } from "@/lib/sources";
-import { fetchOneSource, type Candidate } from "@/lib/fetchCandidates";
+import Parser from "rss-parser";
 
-export type NewsFeedItem = Candidate;
+export type NewsFeedItem = {
+  title: string;
+  link: string;
+  sourceName: string;
+  publishedAt: Date | null;
+  contentSnippet: string | null;
+  imageUrl: string | null;
+};
 
-/** The curated source list is per-region and overlaps heavily (e.g. "Defence Security Asia" appears under four regions) — collapse to one fetch per unique URL. */
-function uniqueSources(): SourceDef[] {
-  const byUrl = new Map<string, SourceDef>();
-  for (const sources of Object.values(SOURCES)) {
-    for (const source of sources) {
-      if (!byUrl.has(source.url)) byUrl.set(source.url, source);
+type FeedSourceDef = {
+  name: string;
+  /** Candidate feed URLs to try in order — the first one that parses and returns items wins. */
+  feedUrls: string[];
+};
+
+/**
+ * A dedicated source list for the "News Feeds" tab — general international
+ * news outlets, distinct from lib/sources.ts's defence-trade-press list used
+ * by the article-generation pipeline. Reuters and AP no longer publish a
+ * working native RSS feed (Reuters retired theirs in 2020; AP's broke in
+ * 2024) — both fall back to a Google News search scoped to that outlet's own
+ * domain via `site:`, which still surfaces their actual stories, just
+ * through Google's feed rather than the publisher's own.
+ */
+const NEWS_FEED_SOURCES: FeedSourceDef[] = [
+  {
+    name: "Channel News Asia",
+    feedUrls: [
+      "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6511",
+      "https://www.channelnewsasia.com/rssfeeds/8395986",
+    ],
+  },
+  {
+    name: "The Straits Times",
+    feedUrls: [
+      "https://www.straitstimes.com/news/singapore/rss.xml",
+      "https://www.straitstimes.com/news/asia/rss.xml",
+      "https://www.straitstimes.com/rss.xml",
+    ],
+  },
+  {
+    name: "Al Jazeera English",
+    feedUrls: ["https://www.aljazeera.com/xml/rss/all.xml"],
+  },
+  {
+    name: "Reuters",
+    feedUrls: ["https://news.google.com/rss/search?q=site:reuters.com+when:2d&hl=en-US&gl=US&ceid=US:en"],
+  },
+  {
+    name: "ANTARA News",
+    feedUrls: ["https://en.antaranews.com/rss/news.xml", "https://en.antaranews.com/rss/news"],
+  },
+  {
+    name: "Astro AWANI",
+    feedUrls: [
+      "https://www.astroawani.com/rss.xml",
+      "https://www.astroawani.com/feed",
+      "https://www.astroawani.com/rss",
+    ],
+  },
+  {
+    name: "The Jerusalem Post",
+    feedUrls: ["https://www.jpost.com/rss/rssfeedsfrontpage.aspx"],
+  },
+  {
+    name: "Associated Press",
+    feedUrls: ["https://news.google.com/rss/search?q=site:apnews.com+when:2d&hl=en-US&gl=US&ceid=US:en"],
+  },
+];
+
+const parser = new Parser({
+  timeout: 10_000,
+  // Several of these outlets 403 the parser's default request (no User-Agent)
+  // even though the same URL works fine from a browser or curl — send a
+  // normal browser UA so the feed request isn't treated as a bot.
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    Accept: "application/rss+xml, application/xml, text/xml, */*",
+  },
+  customFields: {
+    item: [
+      ["media:content", "mediaContent", { keepArray: true }],
+      ["media:thumbnail", "mediaThumbnail", { keepArray: true }],
+    ],
+  },
+});
+
+type RawItem = Parser.Item & {
+  mediaContent?: { $?: { url?: string; medium?: string; type?: string } }[];
+  mediaThumbnail?: { $?: { url?: string } }[];
+};
+
+function extractImage(item: RawItem): string | null {
+  const media = item.mediaContent?.find((m) => m.$?.medium === "image" || m.$?.type?.startsWith("image/"));
+  if (media?.$?.url) return media.$.url;
+  if (item.mediaContent?.[0]?.$?.url) return item.mediaContent[0].$.url;
+  if (item.mediaThumbnail?.[0]?.$?.url) return item.mediaThumbnail[0].$.url;
+  if (item.enclosure?.url && (!item.enclosure.type || item.enclosure.type.startsWith("image/"))) {
+    return item.enclosure.url;
+  }
+  // Several outlets (e.g. Jerusalem Post, ANTARA) don't use RSS media
+  // extensions at all — they embed the lead image as a plain <img> inside
+  // the item's HTML content instead.
+  const imgMatch = item.content?.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch) return imgMatch[1];
+  return null;
+}
+
+async function fetchOneFeedSource(source: FeedSourceDef, cutoff: Date): Promise<NewsFeedItem[]> {
+  for (const feedUrl of source.feedUrls) {
+    try {
+      const feed = await parser.parseURL(feedUrl);
+      const items = (feed.items as RawItem[])
+        .filter((item) => item.title && item.link)
+        .map((item) => ({
+          title: item.title!.trim(),
+          link: item.link!,
+          sourceName: source.name,
+          publishedAt: item.isoDate ? new Date(item.isoDate) : null,
+          contentSnippet: item.contentSnippet?.slice(0, 300) ?? null,
+          imageUrl: extractImage(item),
+        }))
+        .filter((item) => !item.publishedAt || item.publishedAt >= cutoff);
+      if (items.length > 0) return items;
+    } catch {
+      // try the next candidate URL for this source
     }
   }
-  return [...byUrl.values()];
+  return [];
 }
 
 /**
- * Pulls recent, relevance-filtered headlines across every curated source in
- * lib/sources.ts — the same best-effort RSS discovery and keyword filtering
- * the article-generation pipeline already uses (fetchCandidates.ts), just
- * applied across all sources at once instead of one region's subset. No
- * third-party account, API key, or OAuth — these are the outlets' own public
- * RSS feeds.
+ * Pulls recent items (with images, where the feed provides one) from the
+ * curated News Feeds source list. Best-effort per source — one dead/changed
+ * feed doesn't take down the rest.
  */
-export async function fetchAllNewsFeedItems(cutoffDays = 14): Promise<NewsFeedItem[]> {
+export async function fetchAllNewsFeedItems(cutoffDays = 3): Promise<NewsFeedItem[]> {
   const cutoff = new Date(Date.now() - cutoffDays * 24 * 60 * 60 * 1000);
-  const sources = uniqueSources();
 
-  const results = await Promise.allSettled(sources.map((s) => fetchOneSource(s.name, s.url, cutoff)));
+  const results = await Promise.allSettled(NEWS_FEED_SOURCES.map((s) => fetchOneFeedSource(s, cutoff)));
   const items = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 
   const seenLinks = new Set<string>();

@@ -4,7 +4,7 @@ import { fetchAllNewsFeedItems, type NewsFeedItem } from "@/lib/newsFeed";
 import { format } from "date-fns";
 
 // Regenerated in the background at most every 30 minutes (Vercel ISR) rather
-// than on every request — these are live RSS fetches across ~15 outlets, no
+// than on every request — these are live RSS fetches across 8 outlets, no
 // need to re-run that for every page view.
 export const revalidate = 1800;
 
@@ -27,8 +27,9 @@ export default async function NewsFeedsPage() {
         <div>
           <h1 className="stencil text-2xl text-foreground">News Feeds</h1>
           <p className="mt-2 max-w-2xl font-mono text-xs text-muted">
-            A live, unedited roundup pulled directly from this site&apos;s curated defence/military
-            sources — refreshed automatically roughly every 30 minutes.
+            A live, unedited roundup from Channel News Asia, The Straits Times, Al Jazeera
+            English, Reuters, ANTARA News, Astro AWANI, The Jerusalem Post, and Associated
+            Press — refreshed automatically roughly every 30 minutes.
           </p>
         </div>
 
@@ -38,7 +39,7 @@ export default async function NewsFeedsPage() {
           </p>
         ) : items.length === 0 ? (
           <p className="rounded border border-border bg-panel p-6 text-center text-sm text-muted">
-            No recent items found across the curated sources right now — check back later.
+            No recent items found across these sources right now — check back later.
           </p>
         ) : (
           <div className="flex flex-col gap-3">
@@ -48,16 +49,28 @@ export default async function NewsFeedsPage() {
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col gap-1 rounded border border-border bg-panel p-4 transition-colors hover:border-accent"
+                className="flex gap-3 rounded border border-border bg-panel p-4 transition-colors hover:border-accent"
               >
-                <p className="font-mono text-[10px] uppercase tracking-widest text-gold">
-                  {item.sourceName}
-                  {item.publishedAt ? ` · ${format(item.publishedAt, "d MMM yyyy, HH:mm")}` : ""}
-                </p>
-                <h2 className="text-sm font-semibold leading-snug text-foreground">{item.title}</h2>
-                {item.contentSnippet && (
-                  <p className="line-clamp-2 text-xs text-muted">{item.contentSnippet}</p>
+                {item.imageUrl && (
+                  <div className="hidden w-28 shrink-0 overflow-hidden rounded border border-border bg-panel-2 sm:block">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- external, arbitrary-host thumbnail, live-fetched and not stored in our DB so not proxied */}
+                    <img
+                      src={item.imageUrl}
+                      alt=""
+                      className="aspect-video h-full w-full object-cover"
+                    />
+                  </div>
                 )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-gold">
+                    {item.sourceName}
+                    {item.publishedAt ? ` · ${format(item.publishedAt, "d MMM yyyy, HH:mm")}` : ""}
+                  </p>
+                  <h2 className="mt-1 text-sm font-semibold leading-snug text-foreground">{item.title}</h2>
+                  {item.contentSnippet && (
+                    <p className="mt-1 line-clamp-2 text-xs text-muted">{item.contentSnippet}</p>
+                  )}
+                </div>
               </a>
             ))}
           </div>

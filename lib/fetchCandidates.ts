@@ -26,8 +26,7 @@ async function tryFeedUrls(baseUrl: string): Promise<string[]> {
   return [baseUrl, `${baseUrl.replace(/\/$/, "")}/feed`, `${origin}/feed`, `${origin}/rss`];
 }
 
-/** Exported for reuse by lib/newsFeed.ts (the "News Feeds" tab), which pulls every curated source directly rather than one region's subset. */
-export async function fetchOneSource(
+async function fetchOneSource(
   name: string,
   sourceUrl: string,
   cutoff: Date
