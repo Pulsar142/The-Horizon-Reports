@@ -402,16 +402,3 @@ model AirbaseUnit {
 
   @@index([airbaseId])
 }
-
-// Singleton row holding the site's Inoreader OAuth tokens for the "News Feeds"
-// tab. OAuth access tokens expire quickly (~1hr) and must be renewed from the
-// refresh token, so these can't live in a static env var — the sync job reads
-// and rewrites this row each run. `id` is always the literal string
-// "default"; there is never more than one row.
-model InoreaderAuth {
-  id           String   @id @default("default")
-  accessToken  String
-  refreshToken String
-  expiresAt    DateTime
-  updatedAt    DateTime @updatedAt
-}
