@@ -1,6 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -136,6 +137,9 @@ const COUNTRY_COLORS: Record<string, string> = {
   Vietnam: "#008300",
   Thailand: "#9085e9",
   Cambodia: "#e66767",
+  Laos: "#4aa3a2",
+  Myanmar: "#e0b04a",
+  "Timor-Leste": "#7a5fb5",
 };
 const DEFAULT_BORDER = "#6b6f5a";
 
@@ -266,7 +270,11 @@ export function RegionalKnowledgeMap({
                     <p className="text-[10px] uppercase tracking-widest text-muted">
                       {a.country} — {a.baseType === "CIVIL_MILITARY_SHARED" ? "Civil/Military Shared" : "Military"}
                     </p>
-                    <p className="text-sm font-semibold">{a.name}</p>
+                    <p className="text-sm font-semibold">
+                      <Link href={`/regional-knowledge/airbase/${a.slug}`} className="text-accent hover:underline">
+                        {a.name}
+                      </Link>
+                    </p>
                     <p className="text-muted">{a.operator}</p>
                     <p>{a.description}</p>
 

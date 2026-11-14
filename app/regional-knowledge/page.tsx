@@ -1,6 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
-import { getPublishedAirbases } from "@/lib/queries";
+import Link from "next/link";
+import { getPublishedAirbases, getPublishedAirbaseCountries } from "@/lib/queries";
 import { getSession } from "@/lib/session";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { RegionalKnowledgeMapLoader } from "@/app/components/RegionalKnowledgeMapLoader";
@@ -17,7 +18,12 @@ async function loadBorders(): Promise<GeoJSON.FeatureCollection | null> {
 }
 
 export default async function RegionalKnowledgePage() {
-  const [airbases, geojson, session] = await Promise.all([getPublishedAirbases(), loadBorders(), getSession()]);
+  const [airbases, countries, geojson, session] = await Promise.all([
+    getPublishedAirbases(),
+    getPublishedAirbaseCountries(),
+    loadBorders(),
+    getSession(),
+  ]);
 
   const mapData: AirbaseMapData[] = airbases.map((a) => ({
     id: a.id,
@@ -62,6 +68,38 @@ export default async function RegionalKnowledgePage() {
             classified sources. Illustrative and approximate, not a real-time order of battle.
           </p>
         </div>
+
+        <div className="flex flex-wrap gap-2 font-mono text-xs">
+          <Link
+            href="/regional-knowledge/aircraft"
+            className="rounded border border-accent/60 px-3 py-1.5 text-accent hover:bg-accent hover:text-background transition-colors"
+          >
+            Aircraft Platforms
+          </Link>
+          <Link
+            href="/regional-knowledge/weapon"
+            className="rounded border border-danger/60 px-3 py-1.5 text-danger hover:bg-danger hover:text-background transition-colors"
+          >
+            Weapons &amp; Munitions
+          </Link>
+        </div>
+
+        {countries.length > 0 && (
+          <div>
+            <p className="stencil mb-2 text-xs tracking-widest text-muted">Browse by Country</p>
+            <div className="flex flex-wrap gap-2">
+              {countries.map((c) => (
+                <Link
+                  key={c}
+                  href={`/regional-knowledge/country/${encodeURIComponent(c)}`}
+                  className="rounded border border-border bg-panel px-3 py-1.5 font-mono text-xs text-foreground hover:border-accent hover:text-accent"
+                >
+                  {c}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {mapData.length === 0 ? (
           <p className="mt-8 text-center font-mono text-sm text-muted">

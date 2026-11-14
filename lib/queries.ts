@@ -182,6 +182,68 @@ export async function getPublishedAirbases() {
   });
 }
 
+/** Every distinct country with at least one published airbase, for the Regional Knowledge country index. */
+export async function getPublishedAirbaseCountries(): Promise<string[]> {
+  const rows = await db.militaryAirbase.findMany({
+    where: { status: "PUBLISHED" },
+    select: { country: true },
+    distinct: ["country"],
+    orderBy: { country: "asc" },
+  });
+  return rows.map((r) => r.country);
+}
+
+/** Published airbases for one country (case-sensitive exact match on the stored country name), with their units. */
+export async function getPublishedAirbasesByCountry(country: string) {
+  return db.militaryAirbase.findMany({
+    where: { status: "PUBLISHED", country },
+    orderBy: { name: "asc" },
+    include: { units: true },
+  });
+}
+
+/** One published airbase by slug, with its units and each unit's linked aircraft platform (if any). */
+export async function getAirbaseBySlug(slug: string) {
+  return db.militaryAirbase.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    include: {
+      units: { include: { aircraft: { select: { slug: true, name: true, imageUrl: true } } } },
+    },
+  });
+}
+
+/** Published aircraft platforms, for the Regional Knowledge aircraft index. */
+export async function getPublishedAircraft() {
+  return db.militaryAircraft.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { name: "asc" },
+  });
+}
+
+/** One published aircraft platform by slug, with the weapons it's known to carry. */
+export async function getAircraftBySlug(slug: string) {
+  return db.militaryAircraft.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    include: { weapons: { include: { weapon: true } } },
+  });
+}
+
+/** Published weapon/munition platforms, for the Regional Knowledge weapons index. */
+export async function getPublishedWeapons() {
+  return db.weapon.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { name: "asc" },
+  });
+}
+
+/** One published weapon by slug, with the aircraft known to carry it. */
+export async function getWeaponBySlug(slug: string) {
+  return db.weapon.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    include: { aircraft: { include: { aircraft: true } } },
+  });
+}
+
 export async function getEnabledRegions(): Promise<Region[]> {
   const settings = await db.regionSetting.findMany();
   const disabled = new Set(settings.filter((s) => !s.enabled).map((s) => s.region));

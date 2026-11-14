@@ -396,9 +396,124 @@ model AirbaseUnit {
   category     AirbaseUnitCategory
   unitName     String // e.g. "142 Squadron 'Gryphon'" or "1st Air Defence Missile Squadron"
   aircraftType String? // e.g. "F-15SG Eagle" — null for non-flying units (air defense/support/ammo depot)
+  aircraftId   String? // optional link to a MilitaryAircraft platform page, when one exists for aircraftType
+  aircraft     MilitaryAircraft?   @relation(fields: [aircraftId], references: [id], onDelete: SetNull)
   approxCount  Int? // approximate aircraft count, if publicly reported — never a guess
   notes        String? // freeform detail, e.g. role, subordinate command, ordnance types stored
   sources      String // JSON: {name,url}[]
 
   @@index([airbaseId])
+  @@index([aircraftId])
+}
+
+enum AircraftRole {
+  FIGHTER
+  MULTIROLE_FIGHTER
+  ATTACK
+  TRANSPORT
+  HELICOPTER
+  UAV
+  TRAINER
+  MARITIME_PATROL
+  AEW_C
+  TANKER
+  OTHER
+}
+
+// An aircraft platform reference page (e.g. "F-16 Fighting Falcon") — one
+// entry per distinct type/model actually operated by a South East Asian
+// air force, not every variant worldwide. Compiled from manufacturer
+// datasheets, official air force/government releases, and established
+// defence references (Jane's, IISS Military Balance, Flight Global) —
+// never from classified sources. Reuses ArticleStatus for admin
+// review-gating, same as MilitaryAirbase.
+model MilitaryAircraft {
+  id                  String        @id @default(cuid())
+  slug                String        @unique
+  name                String // e.g. "F-16 Fighting Falcon"
+  manufacturer        String // e.g. "General Dynamics / Lockheed Martin"
+  role                AircraftRole
+  description         String // 2-4 sentence overview: origin, role, general context
+  firstFlight         String? // free text (year or date) — precision varies by source
+  crew                Int?
+  lengthFt            Float?
+  wingspanFt          Float?
+  heightFt            Float?
+  maxSpeed            String? // free text, e.g. "Mach 2.0 (1,500 mph)" — units vary by source
+  combatRadiusNm      Int?
+  serviceCeilingFt    Int?
+  maxTakeoffWeightLbs Int?
+  armamentSummary     String? // freeform: internal gun, hardpoints, typical loadout
+  operatorsInRegion   String // JSON: {country, variant, approxCount, sources}[] — SEA operators only
+  variants            String? // freeform: notable variants and what distinguishes them
+  imageUrl            String?
+  sources             String // JSON: {name,url}[] — platform-level sources (manufacturer/Jane's/etc.)
+  status              ArticleStatus @default(DRAFT)
+  createdBy           String        @default("bot")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  weapons AircraftWeapon[]
+  units   AirbaseUnit[]
+
+  @@index([status])
+}
+
+enum WeaponCategory {
+  AIR_TO_AIR_MISSILE
+  AIR_TO_GROUND_MISSILE
+  ANTI_SHIP_MISSILE
+  SURFACE_TO_AIR_MISSILE
+  BOMB
+  ROCKET
+  GUN_CANNON
+  OTHER
+}
+
+// A weapon/munition reference page (e.g. "AIM-120 AMRAAM") carried by one
+// or more MilitaryAircraft operated in the region. Compiled from
+// manufacturer datasheets, official government/military releases, and
+// established defence references — never from classified sources. Reuses
+// ArticleStatus for admin review-gating, same as MilitaryAircraft.
+model Weapon {
+  id                String        @id @default(cuid())
+  slug              String        @unique
+  name              String // e.g. "AIM-120 AMRAAM"
+  manufacturer      String
+  category          WeaponCategory
+  description       String // 2-4 sentence overview
+  guidance          String? // e.g. "Active radar homing"
+  rangeNm           Float?
+  speed             String? // free text, e.g. "Mach 4"
+  warhead           String? // freeform: type and approximate weight
+  lengthIn          Float?
+  diameterIn        Float?
+  weightLbs         Float?
+  variants          String? // freeform
+  operatorsInRegion String? // JSON: {country, sources}[] — which SEA air forces field it, if known
+  imageUrl          String?
+  sources           String // JSON: {name,url}[]
+  status            ArticleStatus @default(DRAFT)
+  createdBy         String        @default("bot")
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  aircraft AircraftWeapon[]
+
+  @@index([status])
+}
+
+// Join row: one aircraft platform can carry many weapons, and one weapon
+// can be carried by many aircraft platforms.
+model AircraftWeapon {
+  id         String           @id @default(cuid())
+  aircraftId String
+  aircraft   MilitaryAircraft @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+  weaponId   String
+  weapon     Weapon           @relation(fields: [weaponId], references: [id], onDelete: Cascade)
+  notes      String? // e.g. "carried on wing pylons" or integration-specific detail
+
+  @@unique([aircraftId, weaponId])
+  @@index([aircraftId])
+  @@index([weaponId])
 }

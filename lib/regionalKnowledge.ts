@@ -1,4 +1,4 @@
-import type { AirbaseType, AirbaseUnitCategory } from "@/generated/prisma/client";
+import type { AirbaseType, AirbaseUnitCategory, AircraftRole, WeaponCategory } from "@/generated/prisma/client";
 
 export const REGIONAL_KNOWLEDGE_COUNTRIES = [
   "Singapore",
@@ -9,8 +9,36 @@ export const REGIONAL_KNOWLEDGE_COUNTRIES = [
   "Cambodia",
   "Thailand",
   "Malaysia",
+  "Laos",
+  "Myanmar",
+  "Timor-Leste",
   "South China Sea",
 ] as const;
+
+export const AIRCRAFT_ROLE_LABELS: Record<AircraftRole, string> = {
+  FIGHTER: "Fighter",
+  MULTIROLE_FIGHTER: "Multirole Fighter",
+  ATTACK: "Attack",
+  TRANSPORT: "Transport",
+  HELICOPTER: "Helicopter",
+  UAV: "UAV",
+  TRAINER: "Trainer",
+  MARITIME_PATROL: "Maritime Patrol",
+  AEW_C: "Airborne Early Warning & Control",
+  TANKER: "Tanker",
+  OTHER: "Other",
+};
+
+export const WEAPON_CATEGORY_LABELS: Record<WeaponCategory, string> = {
+  AIR_TO_AIR_MISSILE: "Air-to-Air Missile",
+  AIR_TO_GROUND_MISSILE: "Air-to-Ground Missile",
+  ANTI_SHIP_MISSILE: "Anti-Ship Missile",
+  SURFACE_TO_AIR_MISSILE: "Surface-to-Air Missile",
+  BOMB: "Bomb",
+  ROCKET: "Rocket",
+  GUN_CANNON: "Gun / Cannon",
+  OTHER: "Other",
+};
 
 export const AIRBASE_TYPE_LABELS: Record<AirbaseType, string> = {
   MILITARY: "Military",
