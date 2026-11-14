@@ -25,7 +25,7 @@ export default async function NewsFeedsPage() {
       <SiteHeader role={session?.role ?? null} />
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6">
         <div>
-          <h1 className="stencil text-2xl text-foreground">News Feeds</h1>
+          <h1 className="stencil text-2xl text-foreground">Trending News</h1>
           <p className="mt-2 max-w-2xl font-mono text-xs text-muted">
             A live, unedited roundup from Channel News Asia, The Straits Times, Al Jazeera
             English, Reuters, ANTARA News, Astro AWANI, The Jerusalem Post, and Associated

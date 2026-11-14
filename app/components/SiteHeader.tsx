@@ -25,7 +25,7 @@ export function SiteHeader({ role }: { role: Role | null }) {
             href="/news-feeds"
             className="rounded border border-accent/60 px-3 py-1.5 text-accent hover:bg-accent hover:text-background transition-colors"
           >
-            News Feeds
+            Trending News
           </Link>
           <Link
             href="/regional-knowledge"
